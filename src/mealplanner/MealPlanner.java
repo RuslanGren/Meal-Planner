@@ -6,7 +6,7 @@ public class MealPlanner {
     private final Scanner scanner = new Scanner(System.in);
     private boolean flag = true;
     private final MealPlannerDB db = new MealPlannerDB();
-    private int meal_id = 0;
+
     public void start() {
         while(flag) {
             System.out.println("What would you like to do (add, show, exit)?");
@@ -22,19 +22,13 @@ public class MealPlanner {
 
     private void add() {
         System.out.println("Which meal do you want to add (breakfast, lunch, dinner)?");
-        String category = scanner.nextLine();
-        while(!category.equalsIgnoreCase("breakfast")
-                && !category.equalsIgnoreCase("lunch")
-                && !category.equalsIgnoreCase("dinner")) {
-            System.out.println("Wrong meal category! Choose from: breakfast, lunch, dinner.");
-            category = scanner.nextLine();
-        }
+        String category = inputCategory();
         System.out.println("Input the meal's name:");
         String meal = scanner.nextLine();
         while(availableInput(new String[]{meal})) {
             meal = scanner.nextLine();
         }
-        meal_id++;
+        int meal_id = db.getMeal_id() + 1;
         db.addMeal(category, meal, meal_id);
         System.out.println("Input the ingredients:");
         String[] ingredients = scanner.nextLine().split(",");
@@ -49,11 +43,18 @@ public class MealPlanner {
 
 
     private void show() {
-        if (db.isEmpty()) {
+        if (db.isEmpty(";")) {
             System.out.println("No meals saved. Add a meal first.");
             return;
         }
-       db.showMeals();
+        System.out.println("Which category do you want to print (breakfast, lunch, dinner)?");
+        String category = inputCategory();
+        if (db.isEmpty(String.format("WHERE category = '%s'", category))) {
+            System.out.println("No meals found.");
+            return;
+        }
+        System.out.println("Category: " + category);
+        db.showMeals(category);
     }
 
     private boolean availableInput(String[] ingredients){
@@ -65,6 +66,17 @@ public class MealPlanner {
             }
         }
         return false;
+    }
+
+    private String inputCategory() {
+        String category = scanner.nextLine();
+        while(!category.equalsIgnoreCase("breakfast")
+                && !category.equalsIgnoreCase("lunch")
+                && !category.equalsIgnoreCase("dinner")) {
+            System.out.println("Wrong meal category! Choose from: breakfast, lunch, dinner.");
+            category = scanner.nextLine();
+        }
+        return category;
     }
 
 }
